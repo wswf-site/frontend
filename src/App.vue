@@ -73,6 +73,7 @@ const megaCrewData = ref([
         </div>
       </div>
     </div>
+    페이지가 뜨지 않는다면 새로고침 해주세요! <br />
 
     <div class="contact-info left-aligned-contact">
       혹시나 오류가 생긴다면
