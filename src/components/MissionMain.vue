@@ -1,0 +1,61 @@
+<template>
+  <div class="mission-selection">
+    <h2>미션을 선택해주세요.</h2>
+    <div class="mission-cards">
+      <router-link to="/dance-film" class="mission-card">
+        <h3>
+          DANCE FILM<br />
+          MISSION
+        </h3>
+        <!-- <p>정적 데이터를 사용하는 미션 페이지</p> -->
+      </router-link>
+      <router-link to="/api-mission" class="mission-card">
+        <h3>Global Artist Performance MISSION</h3>
+        <!-- <p>API를 통해 실시간 데이터를 불러오는 미션 페이지</p> -->
+      </router-link>
+    </div>
+    <div style="margin: 30px"></div>
+  </div>
+</template>
+
+<style scoped>
+.mission-selection {
+  text-align: center;
+  margin-top: 50px;
+}
+
+.mission-cards {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.mission-card {
+  display: block;
+  padding: 30px;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #333;
+  width: 300px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.mission-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.mission-card h3 {
+  font-size: 1.8rem;
+  margin-bottom: 15px;
+  color: #007bff;
+}
+
+.mission-card p {
+  font-size: 1rem;
+  color: #666;
+}
+</style>
