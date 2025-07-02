@@ -417,7 +417,7 @@ onMounted(() => {
   color: #555;
   border-bottom: 3px solid transparent;
   transition: all 0.2s ease-in-out;
-  font-size: 0.82em;
+  font-size: 0.8em;
 }
 
 .tab:hover {
