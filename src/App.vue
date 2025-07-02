@@ -100,7 +100,7 @@ const megaCrewData = ref([
             <tbody>
               <tr v-for="data in kpopMissionData" :key="data.team">
                 <td>{{ data.team }}</td>
-                <td>{{ data.views }}만</td>
+                <td>{{ data.views }}</td>
                 <td>{{ data.actualLike.toLocaleString() }}</td>
                 <td>{{ data.estimatedLike.toLocaleString() }}</td>
                 <td>
