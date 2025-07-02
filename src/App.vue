@@ -21,6 +21,7 @@ const megaCrewData = ref([
     </div>
 
     <div class="info-box-small">
+      팀 이름을 클릭하면 상세 통계를 볼 수 있습니다.<br />
       조회수는 약 5분마다 집계 (youtube data API)
       <br />
       좋아요 수는 약 30분마다 집계 (returnyoutubedislike.com) - likes 값을 클릭하면 수집한 시각이
