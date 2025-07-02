@@ -6,12 +6,12 @@ const showMegaCrewTable = ref(false)
 
 // K-POP 미션 데이터 추가
 const kpopMissionData = ref([
-  { team: 'BUMSUP', views: 3204705, actualLike: 188059, estimatedLike: 1171, weight: 160 },
-  { team: 'AGSQUAD', views: 1618803, actualLike: 120516, estimatedLike: 1009, weight: 119 },
-  { team: 'RHTokyo', views: 1618803, actualLike: 111884, estimatedLike: 792, weight: 141 },
-  { team: 'ROYAL_FAMILY', views: 1859645, actualLike: 92887, estimatedLike: 617, weight: 150 },
-  { team: 'MOTIV', views: 1193401, actualLike: 4259445, estimatedLike: 97420, weight: 790 }, // 이 줄은 실제 데이터와 약간 차이가 있어보이나, 제공된 그대로 반영
-  { team: 'OSAKA_OjoGang', views: 1386938, actualLike: 80092, estimatedLike: 737, weight: 108 },
+  { team: 'BUMSUP', views: '320만', actualLike: 188059, estimatedLike: 1171, weight: 160 },
+  { team: 'AGSQUAD', views: '161만', actualLike: 120516, estimatedLike: 1009, weight: 119 },
+  { team: 'RHTokyo', views: '168만', actualLike: 111884, estimatedLike: 792, weight: 141 },
+  { team: 'ROYAL_FAMILY', views: '185만', actualLike: 92887, estimatedLike: 617, weight: 150 },
+  { team: 'MOTIV', views: '119만', actualLike: 97420, estimatedLike: 790, weight: 123 },
+  { team: 'OSAKA_OjoGang', views: '138만', actualLike: 80092, estimatedLike: 737, weight: 108 },
 ])
 
 // MEGA CREW 미션 데이터 기존 ref에 조회수 추가 (제공된 데이터에 조회수 컬럼이 있었으므로)
@@ -76,7 +76,7 @@ const megaCrewData = ref([
             <tbody>
               <tr v-for="data in megaCrewData" :key="data.team">
                 <td>{{ data.team }}</td>
-                <td>{{ data.views.toLocaleString() }}</td>
+                <td>{{ data.views }}만</td>
                 <td>{{ data.actualLike.toLocaleString() }}</td>
                 <td>{{ data.estimatedLike.toLocaleString() }}</td>
                 <td>
@@ -100,7 +100,7 @@ const megaCrewData = ref([
             <tbody>
               <tr v-for="data in kpopMissionData" :key="data.team">
                 <td>{{ data.team }}</td>
-                <td>{{ data.views.toLocaleString() }}</td>
+                <td>{{ data.views }}만</td>
                 <td>{{ data.actualLike.toLocaleString() }}</td>
                 <td>{{ data.estimatedLike.toLocaleString() }}</td>
                 <td>

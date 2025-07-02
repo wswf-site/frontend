@@ -103,7 +103,7 @@ const videosWithDiffRows = computed(() => {
       </button>
 
       <button class="tab" :class="{ active: mode === 'withDiff' }" @click="mode = 'withDiff'">
-        차이 포함
+        순위별 차이
       </button>
       <button class="tab" :class="{ active: mode === 'normalX100' }" @click="mode = 'normalX100'">
         순위만 (X100 버전)
