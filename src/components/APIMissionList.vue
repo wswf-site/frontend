@@ -409,7 +409,7 @@ onMounted(() => {
 }
 
 .tab {
-  padding: 7px 11px;
+  padding: 7px 10px;
   border: none;
   background-color: transparent;
   cursor: pointer;
