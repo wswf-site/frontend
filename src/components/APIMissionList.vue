@@ -219,75 +219,98 @@ onMounted(() => {
       </tbody>
     </table>
 
-    <table class="video-table" v-else-if="mode === 'fullDetails'">
-      <thead>
-        <tr>
-          <th>Rank</th>
-          <th>Team</th>
-          <th>Views</th>
-          <th>Likes</th>
-          <th>Score</th>
-          <th>Link</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="video in videos" :key="video.videoId">
-          <td>{{ video.rank }}</td>
-          <td>
-            <router-link :to="`/api-mission/video/${video.videoId}`">
-              {{ video.teamName }}
-            </router-link>
-          </td>
-          <td>
-            {{ video.viewCount.toLocaleString() }}
-            <span
-              class="diff-value"
-              :class="{ positive: video.viewCountDiff > 0, negative: video.viewCountDiff < 0 }"
-            >
-              {{ formatDiff(video.viewCountDiff) }}
-            </span>
-          </td>
-          <td
-            @click="toggleLikeCollectedAt(video.videoId)"
-            :class="['like-cell', { open: showLikeCollectedAt[video.videoId] }]"
-          >
-            <div>
-              {{ video.likeCount.toLocaleString() }}
+    <template v-else-if="mode === 'fullDetails'">
+      <table class="video-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Team</th>
+            <th>Views</th>
+            <th>Likes</th>
+            <th>Score</th>
+            <th>Link</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="video in videos" :key="video.videoId">
+            <td>{{ video.rank }}</td>
+            <td>
+              <router-link :to="`/api-mission/video/${video.videoId}`">
+                {{ video.teamName }}
+              </router-link>
+            </td>
+            <td>
+              {{ video.viewCount.toLocaleString() }}
               <span
                 class="diff-value"
-                :class="{ positive: video.rawLikesDiff > 0, negative: video.rawLikesDiff < 0 }"
+                :class="{ positive: video.viewCountDiff > 0, negative: video.viewCountDiff < 0 }"
               >
-                {{ formatDiff(video.rawLikesDiff) }}
+                {{ formatDiff(video.viewCountDiff) }}
               </span>
-            </div>
-            <div class="like-meta">
-              <span v-if="showLikeCollectedAt[video.videoId]">
-                {{ video.likeCollectedAt ? formatDateSimple(video.likeCollectedAt) : '정보 없음' }}
+            </td>
+            <td
+              @click="toggleLikeCollectedAt(video.videoId)"
+              :class="['like-cell', { open: showLikeCollectedAt[video.videoId] }]"
+            >
+              <div>
+                {{ video.likeCount.toLocaleString() }}
+                <span
+                  class="diff-value"
+                  :class="{ positive: video.rawLikesDiff > 0, negative: video.rawLikesDiff < 0 }"
+                >
+                  {{ formatDiff(video.rawLikesDiff) }}
+                </span>
+              </div>
+              <div class="like-meta">
+                <span v-if="showLikeCollectedAt[video.videoId]">
+                  {{
+                    video.likeCollectedAt ? formatDateSimple(video.likeCollectedAt) : '정보 없음'
+                  }}
+                </span>
+              </div>
+            </td>
+            <td>
+              {{ video.score.toLocaleString() }}
+              <span
+                class="diff-value"
+                :class="{ positive: video.scoreDiff > 0, negative: video.scoreDiff < 0 }"
+              >
+                {{ formatDiff(video.scoreDiff) }}
               </span>
-            </div>
-          </td>
-          <td>
-            {{ video.score.toLocaleString() }}
-            <span
-              class="diff-value"
-              :class="{ positive: video.scoreDiff > 0, negative: video.scoreDiff < 0 }"
-            >
-              {{ formatDiff(video.scoreDiff) }}
-            </span>
-          </td>
-          <td>
-            <a
-              :href="`https://www.youtube.com/watch?v=${video.videoId}`"
-              target="_blank"
-              rel="noopener noreferrer"
-              style="color: #ff0000; font-size: 14px"
-            >
-              ▶
-            </a>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            </td>
+            <td>
+              <a
+                :href="`https://www.youtube.com/watch?v=${video.videoId}`"
+                target="_blank"
+                rel="noopener noreferrer"
+                style="color: #ff0000; font-size: 14px"
+              >
+                ▶
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p
+        style="
+          margin-top: 15px; /* 위쪽 여백 */
+          margin-bottom: 25px; /* 아래쪽 여백 */
+          padding: 15px 20px; /* 내부 여백 */
+          font-size: 0.95rem;
+          line-height: 1.6; /* 줄 간격 */
+          color: #4a4a4a; /* 글자 색상 */
+          background-color: #f8f8f8; /* 아주 연한 회색 배경 */
+          border-left: 4px solid #dcdcdc; /* 회색 계열 테두리 색상으로 변경 */
+          border-radius: 6px; /* 모서리 둥글게 */
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); /* 은은한 그림자 */
+        "
+      >
+        <strong>📈 증감 설명:</strong><br />
+        '조회수'와 '좋아요'는 집계 주기가 다릅니다. (조회수: 5분 / 좋아요: 30분) <br />
+        따라서 '조회수 증감'은 약 5분 전 대비 조회수 증가량을, '좋아요 증감'은 약 30분 전 대비
+        좋아요 증가량을 나타냅니다.
+      </p>
+    </template>
   </div>
 </template>
 
