@@ -117,7 +117,8 @@ const megaCrewData = ref([
             보입니다.<br />
             본 사이트에서는 좋아요 수 데이터에 기본적으로 <strong>200배 가중치</strong>를
             적용했으며, &times;100 버전 표에서만 <strong>100배 가중치</strong>로 계산한 결과를
-            제공합니다.
+            제공합니다.<br />
+            원하시는 기준에 따라 비교해서 보면 좋을 것 같습니다!
           </p>
 
           <p class="explanation-note"></p>
