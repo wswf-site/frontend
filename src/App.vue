@@ -58,8 +58,8 @@ const megaCrewData = ref([
 
         <div v-if="showMegaCrewTable" class="toggle-content-area minimal-content-area">
           <p class="x200-reason-text">
-            추정값에 &times;200을 할 때 그나마 좋아요 수가 실제와 비슷했기 때문에 &times;200으로
-            계산했습니다.<br />
+            추정값에 &times;200을 할 때 그나마 좋아요 수가 실제와 비슷하게 나오는 것 같아
+            &times;200으로 계산했습니다.<br />
           </p>
 
           <h3 class="mission-table-title">MEGA CREW 미션 결과</h3>
@@ -264,7 +264,8 @@ h1 {
   border: 1px solid #ddd;
   padding: 10px 12px;
   text-align: center;
-  word-break: keep-all; /* 단어가 길어도 줄바꿈하지 않음 */
+  word-break: break-word; /* 긴 단어가 셀 너비를 초과할 경우 줄바꿈 허용 */
+  font-size: 0.75rem; /* 글자 크기 줄이기 */
 }
 
 .mission-table th,

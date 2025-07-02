@@ -302,7 +302,7 @@ const videosWithDiffRows = computed(() => {
 }
 
 .tab {
-  padding: 10px 20px;
+  padding: 7px 11px;
   border: none;
   background-color: transparent;
   cursor: pointer;
@@ -310,6 +310,7 @@ const videosWithDiffRows = computed(() => {
   color: #555;
   border-bottom: 3px solid transparent;
   transition: all 0.2s ease-in-out;
+  font-size: 0.82em;
 }
 
 .tab:hover {
