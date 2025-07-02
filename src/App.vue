@@ -16,11 +16,11 @@ const kpopMissionData = ref([
 
 // MEGA CREW 미션 데이터 기존 ref에 조회수 추가 (제공된 데이터에 조회수 컬럼이 있었으므로)
 const megaCrewData = ref([
-  { team: 'BUMSUP', views: 12219013, actualLike: 1664854, estimatedLike: 5731, weight: 290 },
-  { team: 'OSAKA_OjoGang', views: 6782445, actualLike: 698600, estimatedLike: 2756, weight: 253 },
-  { team: 'MOTIV', views: 4259445, actualLike: 440094, estimatedLike: 1989, weight: 221 }, // 제공된 데이터에 123이 한 번 더 있었는데, 가중치로 판단하여 마지막 값인 221로 통일
-  { team: 'AGSQUAD', views: 3913997, actualLike: 385064, estimatedLike: 1535, weight: 250 },
-  { team: 'RHTokyo', views: 3603334, actualLike: 145873, estimatedLike: 717, weight: 203 },
+  { team: 'BUMSUP', views: '1221만', actualLike: 1664854, estimatedLike: 5731, weight: 290 },
+  { team: 'OSAKA_OjoGang', views: '678만', actualLike: 698600, estimatedLike: 2756, weight: 253 },
+  { team: 'MOTIV', views: '425만', actualLike: 440094, estimatedLike: 1989, weight: 221 },
+  { team: 'AGSQUAD', views: '391만', actualLike: 385064, estimatedLike: 1535, weight: 250 },
+  { team: 'RHTokyo', views: '360만', actualLike: 145873, estimatedLike: 717, weight: 203 },
 ])
 </script>
 
