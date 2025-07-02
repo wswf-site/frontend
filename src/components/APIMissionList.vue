@@ -31,9 +31,13 @@ const fetchVideos = async () => {
   try {
     const res = await fetchCurrentStats()
 
+    // 새로운 데이터 구조에 맞게 enriched 로직 수정
     const enriched = res.map((v) => ({
       ...v,
-      likeCount: v.rawLikes, // rawLikes를 likeCount로 사용
+      likeCount: v.rawLikes, // rawLikes를 likeCount로 사용 (기본)
+      halfLikeCount: v.rawHalfLikes, // rawHalfLikes를 halfLikeCount로 추가
+      score: v.score, // score 그대로 사용 (기본)
+      halfScore: v.rawHalfScores, // rawHalfScores를 halfScore로 추가
       collectedAt: v.viewCollectedAt, // viewCollectedAt을 collectedAt으로 사용 (조회수 기준)
     }))
 
@@ -56,8 +60,8 @@ const getLatestCollectedAt = () => {
   return timestamps.length ? formatDateSimple(new Date(Math.max(...timestamps))) : ''
 }
 
-// mode에 'fullDetails' 추가
-const mode = ref('normal') // 'normal', 'withDiff', 'fullDetails'
+// mode에 'fullDetails' 및 'normalX100' 추가
+const mode = ref('normal') // 'normal', 'withDiff', 'fullDetails', 'normalX100'
 
 // 증감량을 표시하는 헬퍼 함수
 const formatDiff = (diff) => {
@@ -109,11 +113,15 @@ onMounted(() => {
       <button class="tab" :class="{ active: mode === 'normal' }" @click="mode = 'normal'">
         순위만
       </button>
+
       <button class="tab" :class="{ active: mode === 'withDiff' }" @click="mode = 'withDiff'">
         순위별 차이
       </button>
       <button class="tab" :class="{ active: mode === 'fullDetails' }" @click="mode = 'fullDetails'">
         증감
+      </button>
+      <button class="tab" :class="{ active: mode === 'normalX100' }" @click="mode = 'normalX100'">
+        순위만 (좋아요&times;100 버전)
       </button>
     </div>
 
@@ -162,7 +170,73 @@ onMounted(() => {
         </tr>
       </tbody>
     </table>
-
+    <template v-else-if="mode === 'normalX100'">
+      <table class="video-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Team</th>
+            <th>Views</th>
+            <th>Likes</th>
+            <th>Score</th>
+            <th>Link</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="video in videos" :key="video.videoId">
+            <td>{{ video.rank }}</td>
+            <td>
+              <router-link :to="`/api-mission/video/${video.videoId}`">
+                {{ video.teamName }}
+              </router-link>
+            </td>
+            <td>{{ video.viewCount.toLocaleString() }}</td>
+            <td
+              @click="toggleLikeCollectedAt(video.videoId)"
+              :class="['like-cell', { open: showLikeCollectedAt[video.videoId] }]"
+            >
+              <div>{{ video.halfLikeCount.toLocaleString() }}</div>
+              <div class="like-meta">
+                <span v-if="showLikeCollectedAt[video.videoId]">
+                  {{
+                    video.likeCollectedAt ? formatDateSimple(video.likeCollectedAt) : '정보 없음'
+                  }}
+                </span>
+              </div>
+            </td>
+            <td>{{ video.halfScore.toLocaleString() }}</td>
+            <td>
+              <a
+                :href="`https://www.youtube.com/watch?v=${video.videoId}`"
+                target="_blank"
+                rel="noopener noreferrer"
+                style="color: #ff0000; font-size: 14px"
+              >
+                ▶
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p
+        style="
+          margin-top: 15px; /* 위쪽 여백 */
+          margin-bottom: 25px; /* 아래쪽 여백 */
+          padding: 15px 20px; /* 내부 여백 */
+          font-size: 0.95rem;
+          line-height: 1.6; /* 줄 간격 */
+          color: #4a4a4a; /* 글자 색상 */
+          background-color: #f8f8f8; /* 아주 연한 회색 배경 */
+          border-left: 4px solid #dcdcdc; /* 회색 계열 테두리 색상으로 변경 */
+          border-radius: 6px; /* 모서리 둥글게 */
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); /* 은은한 그림자 */
+        "
+      >
+        <strong> 좋아요&times;100 버전 설명:</strong><br />
+        이 표는 좋아요 가중치를 100으로 적용한 버전입니다. (좋아요 수 절반)<br />
+        이 표를 제외한 사이트의 모든 좋아요 데이터들은 추정치&times;200으로 계산합니다.
+      </p>
+    </template>
     <table class="video-table" v-else-if="mode === 'withDiff'">
       <thead>
         <tr>

@@ -13,7 +13,14 @@ const calculateScore = (video) => {
   return video.viewCount + video.likeCount * 100
 }
 
+// HalfLikeCount를 사용하여 HalfScore 계산
+const calculateHalfScore = (video) => {
+  return video.viewCount + video.HalfLikeCount * 100
+}
+
 const sortByScoreDesc = (videos) => {
+  // score와 halfScore 모두 정렬에 사용될 수 있도록 유연하게 처리
+  // 여기서는 기본 score를 기준으로 정렬
   return videos.sort((a, b) => b.score - a.score)
 }
 
@@ -25,6 +32,7 @@ const assignRanks = (videos) => {
   videos.forEach((v) => {
     actualIndex += 1
     if (v.score !== prevScore) {
+      // 기본 score를 기준으로 랭크 부여
       currentRank = actualIndex
     }
     v.rank = currentRank
@@ -37,7 +45,8 @@ const assignRanks = (videos) => {
 // 고정 데이터로 처리
 const enriched = currentStatsData.map((v) => ({
   ...v,
-  score: calculateScore(v),
+  score: calculateScore(v), // 기존 score 계산
+  halfScore: calculateHalfScore(v), // HalfScore 계산 추가
 }))
 
 const sorted = sortByScoreDesc(enriched)
@@ -55,7 +64,7 @@ const getLatestCollectedAt = () => {
   return timestamps.length ? formatDateSimple(new Date(Math.max(...timestamps))) : ''
 }
 
-const mode = ref('normal') // 'normal' 또는 'withDiff'
+const mode = ref('normal') // 'normal', 'withDiff', 'normalX100'
 
 // 차이 행이 삽입된 데이터 구성
 const videosWithDiffRows = computed(() => {
@@ -92,8 +101,12 @@ const videosWithDiffRows = computed(() => {
       <button class="tab" :class="{ active: mode === 'normal' }" @click="mode = 'normal'">
         순위만
       </button>
+
       <button class="tab" :class="{ active: mode === 'withDiff' }" @click="mode = 'withDiff'">
         차이 포함
+      </button>
+      <button class="tab" :class="{ active: mode === 'normalX100' }" @click="mode = 'normalX100'">
+        순위만 (X100 버전)
       </button>
     </div>
 
@@ -129,8 +142,7 @@ const videosWithDiffRows = computed(() => {
               </span>
             </div>
           </td>
-
-          <td>{{ (video.viewCount + video.likeCount * 100).toLocaleString() }}</td>
+          <td>{{ video.score.toLocaleString() }}</td>
           <td>
             <a
               :href="`http://youtube.com/watch?v=${video.videoId}`"
@@ -144,7 +156,73 @@ const videosWithDiffRows = computed(() => {
         </tr>
       </tbody>
     </table>
-
+    <template v-else-if="mode === 'normalX100'">
+      <table class="video-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Team</th>
+            <th>Views</th>
+            <th>Likes</th>
+            <th>Score</th>
+            <th>Link</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="video in videos" :key="video.videoId">
+            <td>{{ video.rank }}</td>
+            <td>
+              <router-link :to="`/dance-film/video/${video.videoId}`">
+                {{ video.teamName }}
+              </router-link>
+            </td>
+            <td>{{ video.viewCount.toLocaleString() }}</td>
+            <td
+              @click="toggleLikeCollectedAt(video.videoId)"
+              :class="['like-cell', { open: showLikeCollectedAt[video.videoId] }]"
+            >
+              <div>{{ video.HalfLikeCount.toLocaleString() }}</div>
+              <div class="like-meta">
+                <span v-if="showLikeCollectedAt[video.videoId]">
+                  {{
+                    video.likeCollectedAt ? formatDateSimple(video.likeCollectedAt) : '정보 없음'
+                  }}
+                </span>
+              </div>
+            </td>
+            <td>{{ video.halfScore.toLocaleString() }}</td>
+            <td>
+              <a
+                :href="`http://youtube.com/watch?v=${video.videoId}`"
+                target="_blank"
+                rel="noopener noreferrer"
+                style="color: #ff0000; font-size: 14px"
+              >
+                ▶
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p
+        style="
+          margin-top: 15px; /* 위쪽 여백 */
+          margin-bottom: 25px; /* 아래쪽 여백 */
+          padding: 15px 20px; /* 내부 여백 */
+          font-size: 0.95rem;
+          line-height: 1.6; /* 줄 간격 */
+          color: #4a4a4a; /* 글자 색상 */
+          background-color: #f8f8f8; /* 아주 연한 회색 배경 */
+          border-left: 4px solid #dcdcdc; /* 회색 계열 테두리 색상으로 변경 */
+          border-radius: 6px; /* 모서리 둥글게 */
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); /* 은은한 그림자 */
+        "
+      >
+        <strong> 좋아요&times;100 버전 설명:</strong><br />
+        이 표는 좋아요 가중치를 100으로 적용한 버전입니다. (좋아요 수 절반)<br />
+        이 표를 제외한 사이트의 모든 좋아요 데이터들은 추정치&times;200으로 계산합니다.
+      </p>
+    </template>
     <table class="video-table" v-else>
       <thead>
         <tr>

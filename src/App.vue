@@ -4,12 +4,23 @@ import { ref } from 'vue'
 
 const showMegaCrewTable = ref(false)
 
+// K-POP 미션 데이터 추가
+const kpopMissionData = ref([
+  { team: 'BUMSUP', views: 3204705, actualLike: 188059, estimatedLike: 1171, weight: 160 },
+  { team: 'AGSQUAD', views: 1618803, actualLike: 120516, estimatedLike: 1009, weight: 119 },
+  { team: 'RHTokyo', views: 1618803, actualLike: 111884, estimatedLike: 792, weight: 141 },
+  { team: 'ROYAL_FAMILY', views: 1859645, actualLike: 92887, estimatedLike: 617, weight: 150 },
+  { team: 'MOTIV', views: 1193401, actualLike: 4259445, estimatedLike: 97420, weight: 790 }, // 이 줄은 실제 데이터와 약간 차이가 있어보이나, 제공된 그대로 반영
+  { team: 'OSAKA_OjoGang', views: 1386938, actualLike: 80092, estimatedLike: 737, weight: 108 },
+])
+
+// MEGA CREW 미션 데이터 기존 ref에 조회수 추가 (제공된 데이터에 조회수 컬럼이 있었으므로)
 const megaCrewData = ref([
-  { team: 'BUMSUP', actualLike: '166만', estimatedLike: 5731 },
-  { team: 'OSAKA_OjoGang', actualLike: '69만', estimatedLike: 2756 },
-  { team: 'MOTIV', actualLike: '44만', estimatedLike: 1989 },
-  { team: 'AGSQUAD', actualLike: '38만', estimatedLike: 1535 },
-  { team: 'RHTokyo', actualLike: '14만', estimatedLike: 717 },
+  { team: 'BUMSUP', views: 12219013, actualLike: 1664854, estimatedLike: 5731, weight: 290 },
+  { team: 'OSAKA_OjoGang', views: 6782445, actualLike: 698600, estimatedLike: 2756, weight: 253 },
+  { team: 'MOTIV', views: 4259445, actualLike: 440094, estimatedLike: 1989, weight: 221 }, // 제공된 데이터에 123이 한 번 더 있었는데, 가중치로 판단하여 마지막 값인 221로 통일
+  { team: 'AGSQUAD', views: 3913997, actualLike: 385064, estimatedLike: 1535, weight: 250 },
+  { team: 'RHTokyo', views: 3603334, actualLike: 145873, estimatedLike: 717, weight: 203 },
 ])
 </script>
 
@@ -47,29 +58,68 @@ const megaCrewData = ref([
 
         <div v-if="showMegaCrewTable" class="toggle-content-area minimal-content-area">
           <p class="x200-reason-text">
-            추정값에 X200을 할 때 그나마 좋아요 수가 실제와 비슷했기 때문에 X200으로 계산했습니다.
+            추정값에 &times;200을 할 때 그나마 좋아요 수가 실제와 비슷했기 때문에 &times;200으로
+            계산했습니다.<br />
           </p>
 
-          <h3 class="mission-table-title">지난 MEGA CREW Mission 결과</h3>
-
+          <h3 class="mission-table-title">MEGA CREW 미션 결과</h3>
           <table class="mega-crew-table no-background-table-rows">
             <thead>
               <tr>
-                <th>TEAM</th>
-                <th>실제Like</th>
-                <th>추정Like</th>
-                <th>추정Like X 200</th>
+                <th>Team</th>
+                <th>Views</th>
+                <th>실제 Likes</th>
+                <th>추정 Likes (7/1 기준)</th>
+                <th>가중치</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="data in megaCrewData" :key="data.team">
                 <td>{{ data.team }}</td>
-                <td>{{ data.actualLike }}</td>
+                <td>{{ data.views.toLocaleString() }}</td>
+                <td>{{ data.actualLike.toLocaleString() }}</td>
                 <td>{{ data.estimatedLike.toLocaleString() }}</td>
-                <td>{{ (data.estimatedLike * 200).toLocaleString() }}</td>
+                <td>
+                  <b>{{ data.weight }}</b>
+                </td>
               </tr>
             </tbody>
           </table>
+
+          <h3 class="mission-table-title">K-POP 미션 결과</h3>
+          <table class="mission-table">
+            <thead>
+              <tr>
+                <th>Team</th>
+                <th>Views</th>
+                <th>실제 Likes</th>
+                <th>추정 Likes (7/2 기준)</th>
+                <th><b>가중치</b></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="data in kpopMissionData" :key="data.team">
+                <td>{{ data.team }}</td>
+                <td>{{ data.views.toLocaleString() }}</td>
+                <td>{{ data.actualLike.toLocaleString() }}</td>
+                <td>{{ data.estimatedLike.toLocaleString() }}</td>
+                <td>
+                  <b>{{ data.weight }}</b>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            이전 미션들을 기준으로 보면, MEGA CREW 미션에는 약 200배 이상의 가중치가 적용되었고,
+            K-POP 미션은 약 100~150배 수준입니다. (K-POP 미션의 경우, 좋아요를 추정한 날짜가 평가
+            마감일보다 이후이므로, 마감 당시 실제 가중치는 150배 이상일 가능성이 있습니다.)<br />
+            절대적이진 않지만 조회수가 높아질수록 가중치도 함께 높아지는 경향이 있는 것으로
+            보입니다.<br />
+            본 사이트에서는 좋아요 수 데이터에 기본적으로 <strong>200배 가중치</strong>를
+            적용했으며, &times;100 버전 표에서만 <strong>100배 가중치</strong>로 계산한 결과를
+            제공합니다.
+          </p>
+
           <p class="explanation-note"></p>
         </div>
       </div>
@@ -92,6 +142,14 @@ const megaCrewData = ref([
   max-width: 800px;
   margin: 0 auto; /* 중앙 정렬 */
   padding: 0 20px; /* 좌우 여백 */
+}
+/* @media 쿼리를 추가하여 모바일 화면에 최적화 */
+@media (max-width: 768px) {
+  /* 화면 너비가 768px 이하일 때 적용 */
+  .main-container {
+    max-width: 100%; /* 모바일에서는 최대 너비를 100%로 설정 */
+    padding: 0 15px; /* 모바일에서는 양옆 패딩을 15px로 줄여 공간 확보 */
+  }
 }
 
 h1 {
@@ -189,28 +247,47 @@ h1 {
   font-weight: bold;
 }
 
-/* --- MEGA CREW 표 스타일 --- */
+/* --- 공통 테이블 스타일 --- */
+.mission-table,
 .mega-crew-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 15px;
+  margin-bottom: 25px; /* 표 아래 여백 */
   font-size: 0.95rem;
+  table-layout: fixed; /* 셀 너비를 고정하여 내용 길이에 따라 늘어나지 않도록 함 */
 }
 
+.mission-table th,
+.mission-table td,
 .mega-crew-table th,
 .mega-crew-table td {
   border: 1px solid #ddd;
   padding: 10px 12px;
   text-align: center;
+  word-break: keep-all; /* 단어가 길어도 줄바꿈하지 않음 */
 }
 
+.mission-table th,
 .mega-crew-table th {
   background-color: #f0f0f0;
   font-weight: bold;
   color: #555;
 }
 
-/* 표 행 배경색 제거 */
+/* K-POP 미션 테이블 스타일 (행 배경색 및 호버 효과 제거) */
+/* .mission-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+} */
+.mission-table tbody tr:nth-child(even), /* 짝수 행 배경색 제거 */
+.mission-table tbody tr:nth-child(odd) {
+  /* 홀수 행 배경색 제거 */
+  background-color: transparent;
+}
+.mission-table tbody tr:hover {
+  background-color: transparent; /* 호버 시 배경색 제거 */
+}
+
+/* MEGA CREW 표 행 배경색 제거 */
 .mega-crew-table.no-background-table-rows tbody tr:nth-child(odd) {
   background-color: transparent;
 }
