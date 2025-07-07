@@ -3,24 +3,26 @@ import { useRoute } from 'vue-router'
 import { ref, onMounted, computed, watch } from 'vue'
 import ViewChart from './ViewChart.vue'
 
-// 수정: 실제 API 함수 대신, 동적 정적 데이터 로더 함수를 임포트합니다.
-import { loadStaticVideoData } from '@/api/statsApi' // 또는 적절한 경로
+// src/data/globalArtist/ 하위의 모든 views.json 및 likes.json 파일을 가져옵니다.
+// 번들링 시점에 해당 경로에 있는 모든 .json 파일을 포함시키고,
+// 런타임에 필요에 따라 동적으로 접근할 수 있게 합니다.
+const allViewsData = import.meta.glob('@/data/globalArtist/*/views.json', { eager: true })
+const allLikesData = import.meta.glob('@/data/globalArtist/*/likes.json', { eager: true })
 
 const route = useRoute()
 const videoId = ref(route.params.videoId)
 
 const charts = ref([])
 const teamName = ref('')
-const activeTab = ref('view') // 'view' or 'like'
+const activeTab = ref('view')
 
-// 차트 필터링
 const filteredCharts = computed(() =>
   charts.value.filter((chart) => chart.mode === activeTab.value),
 )
 
 const loadCharts = async () => {
   charts.value = []
-  teamName.value = '' // 데이터 로드 전 초기화
+  teamName.value = ''
 
   if (!videoId.value) {
     console.warn('Video ID가 없어 차트 데이터를 불러올 수 없습니다.')
@@ -28,40 +30,39 @@ const loadCharts = async () => {
   }
 
   try {
-    // 특정 날짜 범위는 정적 데이터를 불러올 때는 필요 없지만,
-    // 데이터 내부에서 필터링하거나 UI에 표시하기 위해 유지할 수 있습니다.
-    const datesToDisplay = ['2025-07-05', '2025-07-04', '2025-07-03', '2025-07-02'] // 표시하고 싶은 날짜들
+    const datesToDisplay = ['2025-07-05', '2025-07-04', '2025-07-03', '2025-07-02']
 
-    // 조회수 데이터 가져오기 (views.json 파일 내용 전체)
-    const viewsJsonData = await loadStaticVideoData(videoId.value, 'views')
-    console.log('조회수 정적 데이터:', viewsJsonData)
+    // 해당 videoId에 맞는 views.json 데이터를 찾습니다.
+    const viewsJsonPath = `/src/data/globalArtist/${videoId.value}/views.json`
+    const viewsJsonData = allViewsData[viewsJsonPath]?.default // .default를 통해 실제 JSON 데이터를 가져옵니다.
 
     if (viewsJsonData && viewsJsonData.dailyData) {
       for (const date of datesToDisplay) {
-        // UI에 표시할 날짜만 순회
         if (viewsJsonData.dailyData[date] && viewsJsonData.dailyData[date].length > 0) {
           charts.value.push({
             mode: 'view',
-            type: 'daily', // 이제 'recent' 타입은 없음
+            type: 'daily',
             date: date,
             data: viewsJsonData.dailyData[date],
             id: `view-daily-${date}`,
           })
-          // 팀 이름 설정 (데이터가 있을 때 한 번만 설정)
           if (!teamName.value && viewsJsonData.dailyData[date][0]?.teamName) {
             teamName.value = viewsJsonData.dailyData[date][0].teamName
           }
         }
       }
+    } else {
+      console.warn(
+        `Video ID ${videoId.value}에 대한 views.json 데이터가 없거나 형식이 올바르지 않습니다.`,
+      )
     }
 
-    // 좋아요 데이터 가져오기 (likes.json 파일 내용 전체)
-    const likesJsonData = await loadStaticVideoData(videoId.value, 'likes')
-    console.log('좋아요 정적 데이터:', likesJsonData)
+    // 해당 videoId에 맞는 likes.json 데이터를 찾습니다.
+    const likesJsonPath = `/src/data/globalArtist/${videoId.value}/likes.json`
+    const likesJsonData = allLikesData[likesJsonPath]?.default // .default를 통해 실제 JSON 데이터를 가져옵니다.
 
     if (likesJsonData) {
       for (const date of datesToDisplay) {
-        // UI에 표시할 날짜만 순회
         if (likesJsonData[date] && likesJsonData[date].length > 0) {
           charts.value.push({
             mode: 'like',
@@ -72,13 +73,15 @@ const loadCharts = async () => {
           })
         }
       }
+    } else {
+      console.warn(
+        `Video ID ${videoId.value}에 대한 likes.json 데이터가 없거나 형식이 올바르지 않습니다.`,
+      )
     }
 
-    // 생성된 차트 설정을 날짜 내림차순으로 정렬
     charts.value.sort((a, b) => {
-      // 'recent' 타입이 없으므로, 날짜만으로 정렬합니다.
       if (a.date && b.date) {
-        return new Date(b.date) - new Date(a.date) // 최신 날짜가 먼저 오도록
+        return new Date(b.date) - new Date(a.date)
       }
       return 0
     })
@@ -91,7 +94,6 @@ onMounted(() => {
   loadCharts()
 })
 
-// videoId가 변경되면 차트를 다시 로드합니다.
 watch(
   () => route.params.videoId,
   (newVideoId) => {

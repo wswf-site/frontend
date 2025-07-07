@@ -1,10 +1,21 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { formatDateSimple } from '@/utils/dateUtils'
-import currentStatsData from '@/data/globalArtist/currentStats.json' // 정적 데이터 불러오기
+import currentStatsData from '@/data/globalArtist/currentStats.json' // 이 줄을 추가합니다.
+
+const currentStats = ref(null)
 
 const videos = ref([])
 const showLikeCollectedAt = ref({})
+
+const loadCurrentStatsData = async () => {
+  // fetch 대신 import된 데이터를 사용합니다.
+  currentStats.value = currentStatsData
+  // 에러 처리는 이제 필요 없지만, 데이터가 null일 경우를 대비하여 로직은 유지합니다.
+  if (!currentStats.value) {
+    console.warn('currentStats.json 데이터가 로드되지 않았습니다.')
+  }
+}
 
 const sortByScoreDesc = (videosArray) => {
   return videosArray.sort((a, b) => b.score - a.score)
@@ -27,35 +38,47 @@ const assignRanks = (videosArray) => {
   return videosArray
 }
 
-// currentStatsData를 직접 사용하도록 수정
-const enriched = currentStatsData.map((v) => ({
-  ...v,
-  likeCount: v.rawLikes, // rawLikes를 likeCount로 사용
-  halfLikeCount: v.rawHalfLikes, // rawHalfLikes를 halfLikeCount로 추가
-  // score와 rawHalfScores는 currentStatsData에 이미 있으므로 그대로 사용
-  collectedAt: v.viewCollectedAt, // viewCollectedAt을 collectedAt으로 사용 (조회수 기준)
-}))
+watch(
+  currentStats,
+  (newStats) => {
+    if (newStats) {
+      const enriched = newStats.map((v) => ({
+        ...v,
+        likeCount: v.rawLikes,
+        halfLikeCount: v.rawHalfLikes,
+        collectedAt: v.viewCollectedAt,
+      }))
 
-const sorted = sortByScoreDesc(enriched)
-const ranked = assignRanks(sorted)
+      const sorted = sortByScoreDesc(enriched)
+      const ranked = assignRanks(sorted)
 
-videos.value = ranked
-showLikeCollectedAt.value = Object.fromEntries(ranked.map((v) => [v.videoId, false]))
+      videos.value = ranked
+      showLikeCollectedAt.value = Object.fromEntries(ranked.map((v) => [v.videoId, false]))
+    }
+  },
+  { immediate: true },
+)
 
 const toggleLikeCollectedAt = (videoId) => {
   showLikeCollectedAt.value[videoId] = !showLikeCollectedAt.value[videoId]
 }
 
-const getLatestCollectedAt = () => {
+const getLatestCollectedAt = computed(() => {
+  if (videos.value.length === 0) {
+    return '로딩 중...'
+  }
   const timestamps = videos.value.map((v) => new Date(v.collectedAt))
   return timestamps.length ? formatDateSimple(new Date(Math.max(...timestamps))) : ''
-}
+})
 
-const mode = ref('normal') // 'normal', 'withDiff', 'normalX100'
+const mode = ref('normal')
 
-// 차이 행이 삽입된 데이터 구성 (기존 로직 유지)
 const videosWithDiffRows = computed(() => {
   const result = []
+  if (videos.value.length === 0) {
+    return []
+  }
+
   for (let i = 0; i < videos.value.length; i++) {
     result.push({ ...videos.value[i], isDiff: false })
 
@@ -73,6 +96,10 @@ const videosWithDiffRows = computed(() => {
   }
   return result
 })
+
+onMounted(() => {
+  loadCurrentStatsData()
+})
 </script>
 
 <template>
@@ -80,7 +107,7 @@ const videosWithDiffRows = computed(() => {
     <router-link to="/" class="home-link">← 미션 선택 페이지로 돌아가기</router-link>
     <h2 style="margin-top: 15px; margin-bottom: 8px">✨ Global Artist Performance MISSION</h2>
     <div v-if="videos.length" style="margin-bottom: 16px">
-      ⏱️ 조회 수 마지막 수집 시각: <strong>{{ getLatestCollectedAt() }}</strong>
+      ⏱️ 조회 수 마지막 수집 시각: <strong>{{ getLatestCollectedAt }}</strong>
     </div>
     <p>※ 좋아요 수는 정확하지 않습니다</p>
 
@@ -97,53 +124,12 @@ const videosWithDiffRows = computed(() => {
       </button>
     </div>
 
-    <table class="video-table" v-if="mode === 'normal'">
-      <thead>
-        <tr>
-          <th>Rank</th>
-          <th>Team</th>
-          <th>Views</th>
-          <th>Likes</th>
-          <th>Score</th>
-          <th>Link</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="video in videos" :key="video.videoId">
-          <td>{{ video.rank }}</td>
-          <td>
-            <router-link :to="`/api-mission/video/${video.videoId}`">
-              {{ video.teamName }}
-            </router-link>
-          </td>
-          <td>{{ video.viewCount.toLocaleString() }}</td>
-          <td
-            @click="toggleLikeCollectedAt(video.videoId)"
-            :class="['like-cell', { open: showLikeCollectedAt[video.videoId] }]"
-          >
-            <div>{{ video.likeCount.toLocaleString() }}</div>
-            <div class="like-meta">
-              <span v-if="showLikeCollectedAt[video.videoId]">
-                {{ video.likeCollectedAt ? formatDateSimple(video.likeCollectedAt) : '정보 없음' }}
-              </span>
-            </div>
-          </td>
-          <td>{{ video.score.toLocaleString() }}</td>
-          <td>
-            <a
-              :href="`https://www.youtube.com/watch?v=${video.videoId}`"
-              target="_blank"
-              rel="noopener noreferrer"
-              style="color: #ff0000; font-size: 14px"
-            >
-              ▶
-            </a>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <template v-else-if="mode === 'normalX100'">
-      <table class="video-table">
+    <div v-if="videos.length === 0" class="no-data-message">
+      데이터를 불러오는 중이거나, 데이터가 없습니다.
+    </div>
+
+    <template v-else>
+      <table class="video-table" v-if="mode === 'normal'">
         <thead>
           <tr>
             <th>Rank</th>
@@ -167,7 +153,7 @@ const videosWithDiffRows = computed(() => {
               @click="toggleLikeCollectedAt(video.videoId)"
               :class="['like-cell', { open: showLikeCollectedAt[video.videoId] }]"
             >
-              <div>{{ video.halfLikeCount.toLocaleString() }}</div>
+              <div>{{ video.likeCount.toLocaleString() }}</div>
               <div class="like-meta">
                 <span v-if="showLikeCollectedAt[video.videoId]">
                   {{
@@ -176,7 +162,7 @@ const videosWithDiffRows = computed(() => {
                 </span>
               </div>
             </td>
-            <td>{{ video.rawHalfScores.toLocaleString() }}</td>
+            <td>{{ video.score.toLocaleString() }}</td>
             <td>
               <a
                 :href="`https://www.youtube.com/watch?v=${video.videoId}`"
@@ -190,80 +176,133 @@ const videosWithDiffRows = computed(() => {
           </tr>
         </tbody>
       </table>
-      <p
-        style="
-          margin-top: 15px; /* 위쪽 여백 */
-          margin-bottom: 25px; /* 아래쪽 여백 */
-          padding: 15px 20px; /* 내부 여백 */
-          font-size: 0.95rem;
-          line-height: 1.6; /* 줄 간격 */
-          color: #4a4a4a; /* 글자 색상 */
-          background-color: #f8f8f8; /* 아주 연한 회색 배경 */
-          border-left: 4px solid #dcdcdc; /* 회색 계열 테두리 색상으로 변경 */
-          border-radius: 6px; /* 모서리 둥글게 */
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); /* 은은한 그림자 */
-        "
-      >
-        <strong> 좋아요×100 버전 설명:</strong><br />
-        이 표는 좋아요 가중치를 100으로 적용한 버전입니다. (좋아요 수 절반)<br />
-        이 표를 제외한 사이트의 모든 좋아요 데이터들은 추정치×200으로 계산합니다.
-      </p>
-    </template>
-    <table class="video-table" v-else>
-      <thead>
-        <tr>
-          <th>Rank</th>
-          <th>Team</th>
-          <th>Views</th>
-          <th>Likes</th>
-          <th>Score</th>
-          <th>Link</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(row, idx) in videosWithDiffRows" :key="idx" :class="{ 'diff-row': row.isDiff }">
-          <template v-if="!row.isDiff">
-            <td>{{ row.rank }}</td>
-            <td>
-              <router-link :to="`/api-mission/video/${row.videoId}`">
-                {{ row.teamName }}
-              </router-link>
-            </td>
-            <td>{{ row.viewCount.toLocaleString() }}</td>
-            <td
-              @click="toggleLikeCollectedAt(row.videoId)"
-              :class="['like-cell', { open: showLikeCollectedAt[row.videoId] }]"
-            >
-              <div>{{ row.likeCount.toLocaleString() }}</div>
-              <div class="like-meta">
-                <span v-if="showLikeCollectedAt[row.videoId]">
-                  {{ row.likeCollectedAt ? formatDateSimple(row.likeCollectedAt) : '정보 없음' }}
-                </span>
-              </div>
-            </td>
-            <td>{{ row.score.toLocaleString() }}</td>
-            <td>
-              <a
-                :href="`https://www.youtube.com/watch?v=${row.videoId}`"
-                target="_blank"
-                rel="noopener noreferrer"
-                style="color: #ff0000; font-size: 14px"
+      <template v-else-if="mode === 'normalX100'">
+        <table class="video-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Team</th>
+              <th>Views</th>
+              <th>Likes</th>
+              <th>Score</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="video in videos" :key="video.videoId">
+              <td>{{ video.rank }}</td>
+              <td>
+                <router-link :to="`/api-mission/video/${video.videoId}`">
+                  {{ video.teamName }}
+                </router-link>
+              </td>
+              <td>{{ video.viewCount.toLocaleString() }}</td>
+              <td
+                @click="toggleLikeCollectedAt(video.videoId)"
+                :class="['like-cell', { open: showLikeCollectedAt[video.videoId] }]"
               >
-                ▶
-              </a>
-            </td>
-          </template>
+                <div>{{ video.halfLikeCount.toLocaleString() }}</div>
+                <div class="like-meta">
+                  <span v-if="showLikeCollectedAt[video.videoId]">
+                    {{
+                      video.likeCollectedAt ? formatDateSimple(video.likeCollectedAt) : '정보 없음'
+                    }}
+                  </span>
+                </div>
+              </td>
+              <td>{{ video.rawHalfScores.toLocaleString() }}</td>
+              <td>
+                <a
+                  :href="`https://www.youtube.com/watch?v=${video.videoId}`"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style="color: #ff0000; font-size: 14px"
+                >
+                  ▶
+                </a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p
+          style="
+            margin-top: 15px; /* 위쪽 여백 */
+            margin-bottom: 25px; /* 아래쪽 여백 */
+            padding: 15px 20px; /* 내부 여백 */
+            font-size: 0.95rem;
+            line-height: 1.6; /* 줄 간격 */
+            color: #4a4a4a; /* 글자 색상 */
+            background-color: #f8f8f8; /* 아주 연한 회색 배경 */
+            border-left: 4px solid #dcdcdc; /* 회색 계열 테두리 색상으로 변경 */
+            border-radius: 6px; /* 모서리 둥글게 */
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); /* 은은한 그림자 */
+          "
+        >
+          <strong> 좋아요×100 버전 설명:</strong><br />
+          이 표는 좋아요 가중치를 100으로 적용한 버전입니다. (좋아요 수 절반)<br />
+          이 표를 제외한 사이트의 모든 좋아요 데이터들은 추정치×200으로 계산합니다.
+        </p>
+      </template>
+      <table class="video-table" v-else>
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Team</th>
+            <th>Views</th>
+            <th>Likes</th>
+            <th>Score</th>
+            <th>Link</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="(row, idx) in videosWithDiffRows"
+            :key="idx"
+            :class="{ 'diff-row': row.isDiff }"
+          >
+            <template v-if="!row.isDiff">
+              <td>{{ row.rank }}</td>
+              <td>
+                <router-link :to="`/api-mission/video/${row.videoId}`">
+                  {{ row.teamName }}
+                </router-link>
+              </td>
+              <td>{{ row.viewCount.toLocaleString() }}</td>
+              <td
+                @click="toggleLikeCollectedAt(row.videoId)"
+                :class="['like-cell', { open: showLikeCollectedAt[row.videoId] }]"
+              >
+                <div>{{ row.likeCount.toLocaleString() }}</div>
+                <div class="like-meta">
+                  <span v-if="showLikeCollectedAt[row.videoId]">
+                    {{ row.likeCollectedAt ? formatDateSimple(row.likeCollectedAt) : '정보 없음' }}
+                  </span>
+                </div>
+              </td>
+              <td>{{ row.score.toLocaleString() }}</td>
+              <td>
+                <a
+                  :href="`https://www.youtube.com/watch?v=${row.videoId}`"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style="color: #ff0000; font-size: 14px"
+                >
+                  ▶
+                </a>
+              </td>
+            </template>
 
-          <template v-else>
-            <td colspan="2" style="font-style: italic; color: #888">-</td>
-            <td>{{ row.diffView.toLocaleString() }}</td>
-            <td>{{ row.diffLike.toLocaleString() }}</td>
-            <td>{{ row.diffScore.toLocaleString() }}</td>
-            <td></td>
-          </template>
-        </tr>
-      </tbody>
-    </table>
+            <template v-else>
+              <td colspan="2" style="font-style: italic; color: #888">-</td>
+              <td>{{ row.diffView.toLocaleString() }}</td>
+              <td>{{ row.diffLike.toLocaleString() }}</td>
+              <td>{{ row.diffScore.toLocaleString() }}</td>
+              <td></td>
+            </template>
+          </tr>
+        </tbody>
+      </table>
+    </template>
   </div>
 </template>
 
@@ -374,5 +413,14 @@ const videosWithDiffRows = computed(() => {
 }
 .diff-value.negative {
   color: #dc3545; /* 빨간색 */
+}
+
+.no-data-message {
+  text-align: center;
+  color: #888;
+  padding: 20px;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+  margin-top: 20px;
 }
 </style>
