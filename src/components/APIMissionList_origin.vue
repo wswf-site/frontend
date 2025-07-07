@@ -101,7 +101,6 @@ onMounted(() => {
 </script>
 
 <template>
-  <!-- 배포 확인하기 -->
   <div>
     <router-link to="/" class="home-link">← 미션 선택 페이지로 돌아가기</router-link>
     <h2 style="margin-top: 15px; margin-bottom: 8px">✨ Global Artist Performance MISSION</h2>
