@@ -2,16 +2,17 @@
   <div class="mission-selection">
     <h2>미션을 선택해주세요.</h2>
     <div class="mission-cards">
+      <router-link to="/crew-cheer" class="mission-card">
+        <h3>Crew Cheer Theme Performance</h3>
+      </router-link>
+      <router-link to="/api-mission" class="mission-card">
+        <h3>Global Artist Performance MISSION</h3>
+      </router-link>
       <router-link to="/dance-film" class="mission-card">
         <h3>
           DANCE FILM<br />
           MISSION
         </h3>
-        <!-- <p>정적 데이터를 사용하는 미션 페이지</p> -->
-      </router-link>
-      <router-link to="/api-mission" class="mission-card">
-        <h3>Global Artist Performance MISSION</h3>
-        <!-- <p>API를 통해 실시간 데이터를 불러오는 미션 페이지</p> -->
       </router-link>
     </div>
     <div style="margin: 30px"></div>
@@ -57,5 +58,25 @@
 .mission-card p {
   font-size: 1rem;
   color: #666;
+}
+
+/* --- 모바일 반응형 디자인 --- */
+@media (max-width: 768px) {
+  /* 태블릿 및 모바일 */
+  .mission-cards {
+    flex-direction: column; /* 카드를 세로로 쌓음 */
+    align-items: center; /* 세로로 쌓을 때 가운데 정렬 */
+    gap: 20px; /* 세로 간격 조절 */
+  }
+
+  .mission-card {
+    width: 80%; /* 모바일 화면에 맞게 너비 조절 */
+    max-width: 300px; /* 너무 커지지 않도록 최대 너비 설정 */
+    padding: 20px; /* 모바일에서 패딩 조절 */
+  }
+
+  .mission-card h3 {
+    font-size: 1.5rem; /* 모바일에서 폰트 크기 조절 */
+  }
 }
 </style>

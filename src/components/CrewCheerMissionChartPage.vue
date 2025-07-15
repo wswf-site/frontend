@@ -27,7 +27,7 @@ const loadCharts = async () => {
 
   try {
     // const datesToFetch = generateDateRange(7) // 지난 7일간의 날짜
-    const datesToFetch = ['2025-07-05', '2025-07-04', '2025-07-03', '2025-07-02']
+    const datesToFetch = ['2025-07-20', '2025-07-19', '2025-07-18', '2025-07-17', '2025-07-16']
     // 조회수 데이터 가져오기
     const viewResponse = await fetchVideoHistoryStats(videoId.value, 'view', datesToFetch)
     console.log('조회수 API 응답:', viewResponse)
@@ -115,10 +115,10 @@ watch(
 
 <template>
   <div class="page-wrapper">
-    <router-link to="/api-mission" class="back-link">← 돌아가기</router-link>
+    <router-link to="/crew-cheer" class="back-link">← 돌아가기</router-link>
     <div class="blank" style="margin-bottom: 10px"></div>
     <h2 class="page-title">
-      <span class="stat-label"> Global Artist Performance MISSION 상세 통계</span>
+      <span class="stat-label"> Crew Cheer Theme Performance 상세 통계</span>
       <span class="team-name">{{ teamName || '로딩 중...' }} </span><br />
     </h2>
     <div class="header"></div>

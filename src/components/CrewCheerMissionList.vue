@@ -103,11 +103,17 @@ onMounted(() => {
 <template>
   <div>
     <router-link to="/" class="home-link">← 미션 선택 페이지로 돌아가기</router-link>
-    <h2 style="margin-top: 15px; margin-bottom: 8px">✨ Global Artist Performance MISSION</h2>
+    <h2 style="margin-top: 15px; margin-bottom: 8px">📣 Crew Cheer Theme Performance</h2>
     <div v-if="videos.length" style="margin-bottom: 16px">
       ⏱️ 조회 수 마지막 수집 시각: <strong>{{ getLatestCollectedAt() }}</strong>
     </div>
-    <p>※ 좋아요 수는 정확하지 않습니다</p>
+    <p>
+      ※ 좋아요 수는 정확하지 않습니다<br />
+      <span class="small-text"
+        >좋아요 수에 ×200 가중치를 적용하기 때문에 집계 초반에는 조회수보다 좋아요가 과도하게 높아
+        보일 수 있습니다.</span
+      >
+    </p>
 
     <div class="tabs">
       <button class="tab" :class="{ active: mode === 'normal' }" @click="mode = 'normal'">
@@ -121,7 +127,7 @@ onMounted(() => {
         증감
       </button>
       <button class="tab" :class="{ active: mode === 'normalX100' }" @click="mode = 'normalX100'">
-        순위만 (좋아요&times;100 버전)
+        순위만 (좋아요×100 버전)
       </button>
     </div>
 
@@ -140,7 +146,7 @@ onMounted(() => {
         <tr v-for="video in videos" :key="video.videoId">
           <td>{{ video.rank }}</td>
           <td>
-            <router-link :to="`/api-mission/video/${video.videoId}`">
+            <router-link :to="`/crew-cheer/video/${video.videoId}`">
               {{ video.teamName }}
             </router-link>
           </td>
@@ -186,7 +192,7 @@ onMounted(() => {
           <tr v-for="video in videos" :key="video.videoId">
             <td>{{ video.rank }}</td>
             <td>
-              <router-link :to="`/api-mission/video/${video.videoId}`">
+              <router-link :to="`/crew-cheer/video/${video.videoId}`">
                 {{ video.teamName }}
               </router-link>
             </td>
@@ -232,9 +238,9 @@ onMounted(() => {
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); /* 은은한 그림자 */
         "
       >
-        <strong> 좋아요&times;100 버전 설명:</strong><br />
+        <strong> 좋아요×100 버전 설명:</strong><br />
         이 표는 좋아요 가중치를 100으로 적용한 버전입니다. (좋아요 수 절반)<br />
-        이 표를 제외한 사이트의 모든 좋아요 데이터들은 추정치&times;200으로 계산합니다.
+        이 표를 제외한 사이트의 모든 좋아요 데이터들은 추정치×200으로 계산합니다.
       </p>
     </template>
     <table class="video-table" v-else-if="mode === 'withDiff'">
@@ -253,7 +259,7 @@ onMounted(() => {
           <template v-if="!row.isDiff">
             <td>{{ row.rank }}</td>
             <td>
-              <router-link :to="`/api-mission/video/${row.videoId}`">
+              <router-link :to="`/crew-cheer/video/${row.videoId}`">
                 {{ row.teamName }}
               </router-link>
             </td>
@@ -309,7 +315,7 @@ onMounted(() => {
           <tr v-for="video in videos" :key="video.videoId">
             <td>{{ video.rank }}</td>
             <td>
-              <router-link :to="`/api-mission/video/${video.videoId}`">
+              <router-link :to="`/crew-cheer/video/${video.videoId}`">
                 {{ video.teamName }}
               </router-link>
             </td>
@@ -495,5 +501,10 @@ onMounted(() => {
 }
 .diff-value.negative {
   color: #dc3545; /* 빨간색 */
+}
+
+.small-text {
+  font-size: 0.7em; /* 부모 <p> 태그의 폰트 크기보다 작게 설정 */
+  color: #666; /* 조금 더 연한 색상으로 설정하여 보조적인 느낌 강조 */
 }
 </style>
