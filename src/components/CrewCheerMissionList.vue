@@ -109,10 +109,7 @@ onMounted(() => {
     </div>
     <p>
       ※ 좋아요 수는 정확하지 않습니다<br />
-      <span class="small-text"
-        >좋아요 수에 ×200 가중치를 적용하기 때문에 집계 초반에는 조회수보다 좋아요가 과도하게 높아
-        보일 수 있습니다.</span
-      >
+      <span class="small-text">좋아요 수는 부정확하므로 <b>참고용</b>으로만 봐주세요!</span>
     </p>
 
     <div class="tabs">
