@@ -1,8 +1,13 @@
 <script setup>
 import { useRoute } from 'vue-router'
-import { ref, onMounted, computed, watch } from 'vue' // watch 추가
-import ViewChart from './ViewChart.vue' // 이 ViewChart는 범용 차트 컴포넌트입니다.
-import { fetchVideoHistoryStats } from '@/api/statsApi' // 새로운 API 호출 함수
+import { ref, onMounted, computed, watch } from 'vue'
+import ViewChart from './ViewChart.vue'
+
+// src/data/crewCheer/ 하위의 모든 views.json 및 likes.json 파일을 가져옵니다.
+// 번들링 시점에 해당 경로에 있는 모든 .json 파일을 포함시키고,
+// 런타임에 필요에 따라 동적으로 접근할 수 있게 합니다.
+const allViewsData = import.meta.glob('@/data/crewCheer/*/views.json', { eager: true })
+const allLikesData = import.meta.glob('@/data/crewCheer/*/likes.json', { eager: true })
 
 const route = useRoute()
 const videoId = ref(route.params.videoId) // ref로 변경하여 watch 가능하게
@@ -26,63 +31,78 @@ const loadCharts = async () => {
   }
 
   try {
-    // const datesToFetch = generateDateRange(7) // 지난 7일간의 날짜
-    const datesToFetch = ['2025-07-20', '2025-07-19', '2025-07-18', '2025-07-17', '2025-07-16']
-    // 조회수 데이터 가져오기
-    const viewResponse = await fetchVideoHistoryStats(videoId.value, 'view', datesToFetch)
-    console.log('조회수 API 응답:', viewResponse)
+    // Crew Cheer 데이터에 맞게 표시할 날짜 범위 설정
+    // 예시에서 제공된 날짜를 사용하거나, 필요에 따라 동적으로 생성할 수 있습니다.
+    const datesToDisplay = ['2025-07-20', '2025-07-19', '2025-07-18', '2025-07-17', '2025-07-16']
 
-    if (viewResponse.recentHourData && viewResponse.recentHourData.length > 0) {
-      charts.value.push({
-        mode: 'view',
-        type: 'recent',
-        date: null, // 최근 1시간 데이터는 특정 날짜에 종속되지 않음
-        data: viewResponse.recentHourData,
-        id: 'view-recent',
-      })
-      // 팀 이름 설정 (데이터가 있을 때 한 번만 설정)
-      if (!teamName.value) {
-        teamName.value = viewResponse.recentHourData[0].teamName || '팀 이름'
+    // 해당 videoId에 맞는 views.json 데이터를 찾습니다.
+    const viewsJsonPath = `/src/data/crewCheer/${videoId.value}/views.json`
+    const viewsJsonData = allViewsData[viewsJsonPath]?.default // .default를 통해 실제 JSON 데이터를 가져옵니다.
+
+    if (viewsJsonData) {
+      // recentHourData 처리 (views.json에 이 데이터가 있다면)
+      if (viewsJsonData.recentHourData && viewsJsonData.recentHourData.length > 0) {
+        charts.value.push({
+          mode: 'view',
+          type: 'recent',
+          date: null, // 최근 1시간 데이터는 특정 날짜에 종속되지 않음
+          data: viewsJsonData.recentHourData,
+          id: 'view-recent',
+        })
+        // 팀 이름 설정 (데이터가 있을 때 한 번만 설정)
+        if (!teamName.value) {
+          teamName.value = viewsJsonData.recentHourData[0].teamName || '팀 이름'
+        }
       }
-    }
 
-    if (viewResponse.dailyData) {
-      for (const date in viewResponse.dailyData) {
-        if (viewResponse.dailyData[date] && viewResponse.dailyData[date].length > 0) {
-          charts.value.push({
-            mode: 'view',
-            type: 'daily',
-            date: date,
-            data: viewResponse.dailyData[date],
-            id: `view-daily-${date}`,
-          })
-          if (!teamName.value) {
-            // 아직 팀 이름이 설정되지 않았다면 설정
-            teamName.value = viewResponse.dailyData[date][0].teamName || '팀 이름'
+      // dailyData 처리
+      if (viewsJsonData.dailyData) {
+        for (const date of datesToDisplay) {
+          // 지정된 날짜만 표시
+          if (viewsJsonData.dailyData[date] && viewsJsonData.dailyData[date].length > 0) {
+            charts.value.push({
+              mode: 'view',
+              type: 'daily',
+              date: date,
+              data: viewsJsonData.dailyData[date],
+              id: `view-daily-${date}`,
+            })
+            if (!teamName.value) {
+              teamName.value = viewsJsonData.dailyData[date][0].teamName || '팀 이름'
+            }
           }
         }
       }
+    } else {
+      console.warn(
+        `Video ID ${videoId.value}에 대한 views.json 데이터가 없거나 형식이 올바르지 않습니다.`,
+      )
     }
 
-    // 좋아요 데이터 가져오기 (따로 호출)
-    const likeResponse = await fetchVideoHistoryStats(videoId.value, 'like', datesToFetch)
-    console.log('좋아요 API 응답:', likeResponse)
+    // 해당 videoId에 맞는 likes.json 데이터를 찾습니다.
+    const likesJsonPath = `/src/data/crewCheer/${videoId.value}/likes.json`
+    const likesJsonData = allLikesData[likesJsonPath]?.default // .default를 통해 실제 JSON 데이터를 가져옵니다.
 
-    if (likeResponse) {
-      for (const date in likeResponse) {
-        if (likeResponse[date] && likeResponse[date].length > 0) {
+    if (likesJsonData) {
+      for (const date of datesToDisplay) {
+        // 지정된 날짜만 표시
+        if (likesJsonData[date] && likesJsonData[date].length > 0) {
           charts.value.push({
             mode: 'like',
             type: 'daily', // 좋아요는 'recent' 타입이 없으므로 'daily'만 존재
             date: date,
-            data: likeResponse[date],
+            data: likesJsonData[date],
             id: `like-daily-${date}`,
           })
         }
       }
+    } else {
+      console.warn(
+        `Video ID ${videoId.value}에 대한 likes.json 데이터가 없거나 형식이 올바르지 않습니다.`,
+      )
     }
 
-    // 생성된 차트 설정을 날짜 내림차순, 타입 (recent 먼저)으로 정렬 (선택 사항)
+    // 생성된 차트 설정을 날짜 내림차순, 타입 (recent 먼저)으로 정렬
     charts.value.sort((a, b) => {
       if (a.type === 'recent' && b.type !== 'recent') return -1
       if (a.type !== 'recent' && b.type === 'recent') return 1
@@ -92,10 +112,7 @@ const loadCharts = async () => {
       return 0
     })
   } catch (error) {
-    console.error(
-      `API 미션 차트 데이터를 불러오는 데 실패했습니다 (Video ID: ${videoId.value}):`,
-      error,
-    )
+    console.error(`차트 데이터를 불러오는 데 실패했습니다 (Video ID: ${videoId.value}):`, error)
   }
 }
 
