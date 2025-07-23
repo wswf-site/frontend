@@ -64,15 +64,15 @@ const getLatestCollectedAt = () => {
 const mode = ref('normal') // 'normal', 'withDiff', 'fullDetails', 'normalX100'
 
 // 증감량을 표시하는 헬퍼 함수
-const formatDiff = (diff) => {
-  if (diff === undefined || diff === null) return ''
-  if (diff > 0) {
-    return ` (+${diff.toLocaleString()})`
-  } else if (diff < 0) {
-    return ` (${diff.toLocaleString()})`
-  }
-  return ' (0)' // 0일 경우 (0)으로 표시
-}
+// const formatDiff = (diff) => {
+//   if (diff === undefined || diff === null) return ''
+//   if (diff > 0) {
+//     return ` (+${diff.toLocaleString()})`
+//   } else if (diff < 0) {
+//     return ` (${diff.toLocaleString()})`
+//   }
+//   return ' (0)' // 0일 경우 (0)으로 표시
+// }
 
 // 차이 행이 삽입된 데이터 구성 (기존과 동일)
 const videosWithDiffRows = computed(() => {
@@ -120,9 +120,9 @@ onMounted(() => {
       <button class="tab" :class="{ active: mode === 'withDiff' }" @click="mode = 'withDiff'">
         순위별 차이
       </button>
-      <button class="tab" :class="{ active: mode === 'fullDetails' }" @click="mode = 'fullDetails'">
+      <!-- <button class="tab" :class="{ active: mode === 'fullDetails' }" @click="mode = 'fullDetails'">
         증감
-      </button>
+      </button> -->
       <button class="tab" :class="{ active: mode === 'normalX100' }" @click="mode = 'normalX100'">
         순위만 (좋아요×100 버전)
       </button>
@@ -296,7 +296,7 @@ onMounted(() => {
       </tbody>
     </table>
 
-    <template v-else-if="mode === 'fullDetails'">
+    <!-- <template v-else-if="mode === 'fullDetails'">
       <table class="video-table">
         <thead>
           <tr>
@@ -387,7 +387,7 @@ onMounted(() => {
         따라서 '조회수 증감'은 약 5분 전 대비 조회수 증가량을, '좋아요 증감'은 약 30분 전 대비
         좋아요 증가량을 나타냅니다.
       </p>
-    </template>
+    </template> -->
   </div>
 </template>
 
